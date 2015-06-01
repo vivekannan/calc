@@ -3,9 +3,10 @@
 #include <string.h>
 #include <ctype.h>
 
-static char* HELP_TEXT = "This is help.";
+static int USE_DEGREE = 0;
 static int USE_DOUBLE = 0;
 static int USE_NEWLINE = 0;
+static char* HELP_TEXT = "This is help.";
 
 void printMessage(char* message, int exitCode) {
 	
@@ -19,33 +20,20 @@ int parseOptions(int argc, char* argv[]) {
 		if(strcmp(argv[i], "-d") == 0)
 			USE_DOUBLE = 1;
 		
-		else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
-			printMessage(HELP_TEXT, 1);
-		
 		else if(strcmp(argv[i], "-n") == 0)
 			USE_NEWLINE = 1;
+		
+		else if(strcmp(argv[i], "--deg") == 0)
+			USE_DEGREE = 1;
+		
+		else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+			printMessage(HELP_TEXT, 1);
 		
 		else
 			return i;
 	}
 	
 	printMessage("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSION.\nTry 'calc --help' for more information.", -1);
-}
-
-char* appendArgs(int c, int argc, char* argv[]) {
-	
-	char* dest;
-	int length = 1;
-	
-	for(int i = c; i < argc; i++)
-		length += strlen(argv[i]);
-	
-	dest = (char*) malloc(length * sizeof(char));
-	
-	for(int i = c; i < argc; i++)
-		strcat(dest, argv[i]);
-	
-	return dest;
 }
 
 int precedence(char c) {
@@ -176,9 +164,10 @@ char* shuntYard(char* expr) {
 
 int main(int argc, char* argv[]) {
 	
-	char* expr = appendArgs(parseOptions(argc, argv), argc, argv);
+	int i = parseOptions(argc, argv);
 	
-	printf("%s\n", shuntYard(expr));
+	for(; i < argc; i++)
+		printf("%s\n", shuntYard(argv[i]));
 	
 	return 0;
 }
