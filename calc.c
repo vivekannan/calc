@@ -51,6 +51,11 @@ char* appendArgs(int c, int argc, char* argv[]) {
 int precedence(char c) {
 	
 	switch(c) {
+		case '#':
+		case '$':
+			return 4;
+		case '!':
+			return 3;
 		case '^':
 			return 2;
 		case '*':
@@ -65,7 +70,20 @@ int precedence(char c) {
 
 int isOperator(char c) {
 	
-	return (c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '^');
+	switch(c) {
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+		case '%':
+		case '^':
+		case '!':
+		case '#':
+		case '$':
+			return 1;
+		default:
+			return 0;
+	}
 }
 
 int leftAssociative(char c) {
@@ -78,6 +96,9 @@ int leftAssociative(char c) {
 		case '%':
 			return 1;
 		case '^':
+		case '!':
+		case '#':
+		case '$':
 			return 0;
 	}
 }
@@ -86,32 +107,47 @@ char* shuntYard(char* expr) {
 	
 	char c;
 	int sp = 0, op = 0;
+	int preOperator = 1;
 	char* stack = (char*) malloc(strlen(expr) * sizeof(char));
 	char* output = (char*) malloc(strlen(expr) * sizeof(char));
 	
 	while((c = *expr++) != '\0') {
 		
-		
 		if(isspace(c))
 			continue;
 		
-		else if(isdigit(c))
+		else if(isdigit(c)) {
+			preOperator = 0;
 			output[op++] = c;
+		}
 		
-		else if(c == '(')
+		else if(c == '(') {
+			preOperator = 0;
 			stack[sp++] = c;
+		}
 		
 		else if(c == ')') {
+			preOperator = 0;
+			
 			while(stack[--sp] != '(') {
 				output[op++] = stack[sp];
 				
 				if(sp == 0)
-					return "Mismatched ')'!";
+					printMessage("Mismatched ')'.", -2);
 			}
 			stack[sp] = '\0';
 		}
 		
 		else if(isOperator(c)) {
+			if(preOperator == 0)
+				preOperator = 1;
+			
+			else if(c == '-')
+				c = '#';
+			
+			else if(c == '+')
+				c = '$';
+			
 			if(leftAssociative(c))
 				while(isOperator(stack[--sp]) && precedence(c) <= precedence(stack[sp]))
 					output[op++] = stack[sp];
@@ -123,11 +159,14 @@ char* shuntYard(char* expr) {
 			stack[++sp] = c;
 			stack[++sp] = '\0';
 		}
+		
+		else
+			printMessage("Unidentfied token.", -2);
 	}
 	
 	while(--sp > -1) {
 		if(stack[sp] == '(')
-			return "Mismatched '('";
+			printMessage("Mismatched '('.", -2);
 		
 		output[op++] = stack[sp];
 	}
