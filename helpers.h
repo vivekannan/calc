@@ -41,8 +41,8 @@ int parseOptions(int argc, char* argv[]) {
 int precedence(char c) {
 	
 	switch(c) {
-		case '#':
-		case '$':
+		case '~':
+		case '_':
 			return 4;
 		case '!':
 			return 3;
@@ -68,8 +68,8 @@ int isOperator(char c) {
 		case '%':
 		case '^':
 		case '!':
-		case '#':
-		case '$':
+		case '~':
+		case '_':
 			return 1;
 		default:
 			return 0;
@@ -92,8 +92,8 @@ int leftAssociative(char c) {
 			return 1;
 		case '^':
 		case '!':
-		case '#':
-		case '$':
+		case '~':
+		case '_':
 			return 0;
 	}
 }
@@ -170,10 +170,10 @@ void tokenize(char* expr) {
 				unary = 1;
 			
 			else if(c == '-')
-				c = '#';
+				c = '~';
 			
 			else if(c == '+')
-				c = '$';
+				c = '_';
 			
 			temp.type = OPERATOR;
 			temp.data.op = c;
