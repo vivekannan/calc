@@ -94,8 +94,8 @@ int leftAssociative(char c) {
 char* shuntYard(char* expr) {
 	
 	char c;
+	int unary = 1;
 	int sp = 0, op = 0;
-	int preOperator = 1;
 	char* stack = (char*) malloc(strlen(expr) * sizeof(char));
 	char* output = (char*) malloc(strlen(expr) * sizeof(char));
 	
@@ -104,31 +104,33 @@ char* shuntYard(char* expr) {
 		if(isspace(c))
 			continue;
 		
-		else if(isdigit(c)) {
-			preOperator = 0;
-			output[op++] = c;
-		}
-		
-		else if(c == '(') {
-			preOperator = 0;
-			stack[sp++] = c;
-		}
-		
-		else if(c == ')') {
-			preOperator = 0;
+		if(!isOperator(c)) {
+			unary = 0;
 			
-			while(stack[--sp] != '(') {
-				output[op++] = stack[sp];
+			if(isdigit(c))
+				output[op++] = c;
+			
+			else if(c == '(')
+				stack[sp++] = c;
+			
+			else if(c == ')') {
 				
-				if(sp == 0)
-					printMessage("Mismatched ')'.", -2);
+				while(stack[--sp] != '(') {
+					output[op++] = stack[sp];
+					
+					if(sp == 0)
+						printMessage("Mismatched ')'.", -2);
+				}
+				stack[sp] = '\0';
 			}
-			stack[sp] = '\0';
+			
+			else
+				printMessage("Unidentfied token.", -2);
 		}
 		
-		else if(isOperator(c)) {
-			if(preOperator == 0)
-				preOperator = 1;
+		else {
+			if(unary == 0)
+				unary = 1;
 			
 			else if(c == '-')
 				c = '#';
@@ -147,9 +149,6 @@ char* shuntYard(char* expr) {
 			stack[++sp] = c;
 			stack[++sp] = '\0';
 		}
-		
-		else
-			printMessage("Unidentfied token.", -2);
 	}
 	
 	while(--sp > -1) {
