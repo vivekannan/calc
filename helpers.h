@@ -78,10 +78,10 @@ int isOperator(char c) {
 
 int isFunction(char* f) {
 	
-	return (strcmp(f, "sin") == 0 || strcmp(f, "cos") == 0 || strcmp(f, "tan") == 0 || strcmp(f, "asin") == 0 || strcmp(f, "acos") == 0 || strcmp(f, "atan") == 0 || strcmp(f, "e") == 0 || strcmp(f, "pi") == 0);
+	return (strcmp(f, "sin") == 0 || strcmp(f, "cos") == 0 || strcmp(f, "tan") == 0 || strcmp(f, "asin") == 0 || strcmp(f, "acos") == 0 || strcmp(f, "atan") == 0 || strcmp(f, "exp") == 0 || strcmp(f, "floor") == 0 || strcmp(f, "ceil") == 0 || strcmp(f, "round") == 0 || strcmp(f, "log") == 0 || strcmp(f, "ln") == 0);
 }
 
-int leftAssociative(char c) {
+int isLeftAssociative(char c) {
 	
 	switch(c) {
 		case '+':
@@ -101,10 +101,10 @@ int leftAssociative(char c) {
 
 void tokenize(char* expr) {
 	
+	int i;
 	char c;
 	char* s;
 	double d;
-	int unary = 1;
 	struct token temp;
 	
 	while((c = *expr++) != '\0') {
@@ -112,79 +112,67 @@ void tokenize(char* expr) {
 		if(isspace(c))
 			continue;
 		
-		if(!isOperator(c)) {
-			unary = 0;
+		if(isalpha(c)) {
+			i = 0;
+			s = (char*) malloc((strlen(expr) + 2) * sizeof(char));
 			
-			if(isalpha(c)) {
-				s = (char*) malloc((strlen(expr) + 2) * sizeof(char));
-				
-				do {
-					*s++ = c;
-				} while((c = *expr++) != '\0' && isalpha(c));
-				
-				*s = '\0';
-				
-				if(!isFunction(s))
-					printMessage("Undefined Function", -3);
-				
-				temp.type = FUNCTION;
-				temp.data.func = s;
-				
-				inQueue[inCount++] = temp;
-				
-				--expr;
-			}
+			do {
+				*(s + i++) = c;
+			} while((c = *expr++) != '\0' && isalpha(c));
 			
-			else if(isdigit(c) || c == '.') {
-				
-				d = strtod(--expr, &s);
-				
-				if(expr == (char*) s)
-					printMessage("Invalid constant", -3);
-				
-				if(errno != 0)
-					printMessage("Constant to large for double.", -3);
-				
-				temp.type = CONSTANT;
-				temp.data.d = d;
-				
-				inQueue[inCount++] = temp;
-				
-				expr = (char*) s;
-			}
+			*(s + i) = '\0';
 			
-			else if(c == '(' || c == ')') {
-				unary = 1;
-				temp.type = PARENTHESIS;
-				temp.data.op = c;
-				
-				inQueue[inCount++] = temp;
-			}
+			if(!isFunction(s))
+				printMessage("Undefined Function", -3);
 			
-			else
-				printMessage("Invalid token.", -3);
+			temp.type = FUNCTION;
+			temp.data.func = s;
+			
+			inQueue[inCount++] = temp;
+			
+			--expr;
 		}
 		
-		else {
-			if(unary == 0)
-				unary = 1;
+		else if(isdigit(c) || c == '.') {
+			d = strtod(--expr, &s);
 			
-			else if(c == '-')
-				c = '~';
+			if(expr == (char*) s)
+				printMessage("Invalid constant", -3);
 			
-			else if(c == '+')
-				c = '_';
+			if(errno != 0)
+				printMessage("Constant to large for double.", -3);
+			
+			temp.type = CONSTANT;
+			temp.data.d = d;
+			
+			inQueue[inCount++] = temp;
+			
+			expr = (char*) s;
+		}
+		
+		else if(c == '(' || c == ')') {
+			temp.type = PARENTHESIS;
+			temp.data.op = c;
+			
+			inQueue[inCount++] = temp;
+		}
+		
+		else if(isOperator(c)) {
 			
 			temp.type = OPERATOR;
 			temp.data.op = c;
 			
 			inQueue[inCount++] = temp;
 		}
+		
+		else
+			printMessage("Invalid token.", -3);
 	}
 }
 
 void shuntYard() {
 	
+	int unary = 1;
 	struct token temp;
 	
 	for(int i = 0; i < inCount; i++) {
@@ -214,16 +202,28 @@ void shuntYard() {
 		}
 		
 		else if(temp.type == OPERATOR) {
-			if(leftAssociative(temp.data.op))
-				while(opStack.top != -1 && isOperator(peek(&opStack).data.op) && precedence(temp.data.op) <= precedence(peek(&opStack).data.op))
+			if(unary == 1)
+				if(temp.data.op == '-')
+					temp.data.op = '~';
+				else if(temp.data.op == '+')
+					temp.data.op = '#';
+			
+			if(isLeftAssociative(temp.data.op))
+				while(opStack.top != -1 && ((peek(&opStack).type == OPERATOR && precedence(temp.data.op) <= precedence(peek(&opStack).data.op)) || peek(&opStack).type == FUNCTION))
 					outQueue[outCount++] = pop(&opStack);
 			
 			else
-				while(opStack.top != -1 && isOperator(peek(&opStack).data.op) && precedence(temp.data.op) < precedence(peek(&opStack).data.op))
+				while(opStack.top != -1 && peek(&opStack).type == OPERATOR && precedence(temp.data.op) < precedence(peek(&opStack).data.op))
 					outQueue[outCount++] = pop(&opStack);
 			
 			push(&opStack, temp);
 		}
+		
+		else if(temp.type == FUNCTION) {
+			push(&opStack, temp);
+		}
+		
+		unary = (temp.type != CONSTANT);
 	}
 	
 	while(opStack.top != -1) {
@@ -241,6 +241,9 @@ void shuntYard() {
 		
 		else if(temp.type == OPERATOR)
 			printf("%c ", temp.data.op);
+		
+		else if(temp.type == FUNCTION)
+			printf("%s ", temp.data.func);
 	}
 	printf("\n");
 }
@@ -257,4 +260,7 @@ void evaluate(char* expr) {
 	
 	tokenize(expr);
 	shuntYard();
+	
+	free(inQueue);
+	free(outQueue);
 }
