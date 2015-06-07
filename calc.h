@@ -20,30 +20,6 @@ static struct token* opStack;
 static int outCount;
 static double* outQueue;
 
-double factorial(double d) {
-	
-	double result = 1;
-	
-	for(; d > 1; d--)
-		result *= d;
-	
-	return result;
-}
-
-double toRadians(double d) {
-	return d * (3.14159265 / 180.0);
-}
-
-double toDegrees(double d) {
-		return d * (180.0 / 3.14159265);
-}
-
-void printMessage(char* message, int exitCode) {
-	
-	printf("%s\n", message);
-	exit(exitCode);
-}
-
 int parseOptions(int argc, char* argv[]) {
 	
 	for(int i = 1; i < argc; i++) {
