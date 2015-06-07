@@ -58,7 +58,7 @@ void tokenize(char* expr) {
 			
 			do {
 				*(s + i++) = c;
-			} while((c = *expr++) != '\0' && isalpha(c));
+			} while(isalpha(c = *expr++));
 			
 			*(s + i) = '\0';
 			
@@ -137,26 +137,13 @@ void execute(struct token temp) {
 					result = d1 * d2;
 					break;
 				case '/':
-					if(d2 == 0.0)
-						printMessage("Division by Zero.", -5);
-					
 					result = d1 / d2;
 					break;
 				case '%':
-					if(d2 == 0.0)
-						printMessage("Modulo by Zero.", -5);
-					
 					result = fmod(d1, d2);
 					break;
 				case '^':
-					if(d1 == 0.0 && d2 == 0.0)
-						printMessage("The power of zero is undefined for zero exponent.", -5);
-					else if(d1 < 0.0 && floor(d2) != d2)
-						printMessage("The power of negative base for decimal exponent is not supported.", -5);
-					else if(d1 == 0.0 && d2 < 0.0)
-						printMessage("The power of zero is undefined for a negative exponent.", -5);
-					else
-						result = pow(d1, d2);
+					result = pow(d1, d2);
 					break;
 			}
 		}
@@ -226,17 +213,11 @@ void execute(struct token temp) {
 		else if(strcmp(temp.data.func, "atanh") == 0)
 			result = USE_DEGREE ? toDegrees(atanh(d1)) : atanh(d1);
 		
-		else if(strcmp(temp.data.func, "log") == 0) {
-			if(d1 <= 0.0)
-				printMessage("Logarithm is defined only for numbers > 0.", -5);
+		else if(strcmp(temp.data.func, "log") == 0)
 			result = log10(d1);
-		}
 		
-		else if(strcmp(temp.data.func, "ln") == 0) {
-			if(d1 <= 0.0)
-				printMessage("Logarithm is defined only for numbers > 0.", -5);
+		else if(strcmp(temp.data.func, "ln") == 0)
 			result = log(d1);
-		}
 		
 		else if(strcmp(temp.data.func, "exp") == 0)
 			result = exp(d1);
@@ -250,11 +231,8 @@ void execute(struct token temp) {
 		else if(strcmp(temp.data.func, "floor") == 0)
 			result = floor(d1);
 		
-		else if(strcmp(temp.data.func, "sqrt") == 0) {
-			if(d1 < 0.0)
-				printMessage("Square for negative numbers is not supported.", -5);
+		else if(strcmp(temp.data.func, "sqrt") == 0)
 			result = sqrt(d1);
-		}
 		
 		else if(strcmp(temp.data.func, "abs") == 0)
 			result = abs(d1);
@@ -338,7 +316,7 @@ void shuntYard() {
 	if(outCount != 1)
 		printMessage("Malformed expression.", -6);
 	
-	printf("%g%c", outQueue[--outCount], USE_NEWLINE ? '\n' : ' ');
+	printf("%G%c", outQueue[--outCount], USE_NEWLINE ? '\n' : ' ');
 }
 
 void evaluate(char* expr) {

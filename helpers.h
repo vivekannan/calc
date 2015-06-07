@@ -1,3 +1,5 @@
+static const double PI = 3.141519265358979323846;
+
 double factorial(double d) {
 	
 	double result = 1;
@@ -9,11 +11,13 @@ double factorial(double d) {
 }
 
 double toRadians(double d) {
-	return d * (3.14159265 / 180.0);
+	
+	return d * (PI / 180.0);
 }
 
 double toDegrees(double d) {
-		return d * (180.0 / 3.14159265);
+	
+	return d * (180.0 / PI);
 }
 
 void printMessage(char* message, int exitCode) {
@@ -60,9 +64,9 @@ int isOperator(char c) {
 	}
 }
 
-int isFunction(char* f) {
+int isFunction(char* s) {
 	
-	return (strcmp(f, "sin") == 0 || strcmp(f, "cos") == 0 || strcmp(f, "tan") == 0 || strcmp(f, "asin") == 0 || strcmp(f, "acos") == 0 || strcmp(f, "atan") == 0 || strcmp(f, "exp") == 0 || strcmp(f, "floor") == 0 || strcmp(f, "ceil") == 0 || strcmp(f, "round") == 0 || strcmp(f, "log") == 0 || strcmp(f, "ln") == 0 || strcmp(f, "sinh") == 0 || strcmp(f, "cosh") == 0 || strcmp(f, "tanh") || strcmp(f, "sqrt") || strcmp(f, "abs"));
+	return (strcmp(s, "sin") == 0 || strcmp(s, "cos") == 0 || strcmp(s, "tan") == 0 || strcmp(s, "asin") == 0 || strcmp(s, "acos") == 0 || strcmp(s, "atan") == 0 || strcmp(s, "exp") == 0 || strcmp(s, "floor") == 0 || strcmp(s, "ceil") == 0 || strcmp(s, "round") == 0 || strcmp(s, "log") == 0 || strcmp(s, "ln") == 0 || strcmp(s, "sinh") == 0 || strcmp(s, "cosh") == 0 || strcmp(s, "tanh") == 0 || strcmp(s, "sqrt") == 0 || strcmp(s, "abs") == 0);
 }
 
 int isLeftAssociative(char c) {
