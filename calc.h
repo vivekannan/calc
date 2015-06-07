@@ -3,9 +3,10 @@
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
+#include <string.h>
 
 #include "struct.h"
-#include "types.h"
+#include "helpers.h"
 
 static int USE_DEGREE = 0;
 static int USE_NEWLINE = 0;

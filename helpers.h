@@ -1,5 +1,3 @@
-#include <string.h>
-
 int precedence(char c) {
 	
 	switch(c) {
