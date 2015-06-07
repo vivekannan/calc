@@ -8,12 +8,16 @@ union t {
 	char op;
 	double d;
 	char* func;
+	long double ld;
 };
 
 struct token {
 	
 	int type;
 	union t data;
+	
+	int precedence;
+	int leftAssociative;
 };
 
 struct stack {

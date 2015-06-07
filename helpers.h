@@ -41,11 +41,11 @@ int parseOptions(int argc, char* argv[]) {
 int precedence(char c) {
 	
 	switch(c) {
+		case '!':
+			return 5;
 		case '~':
 		case '_':
 			return 4;
-		case '!':
-			return 3;
 		case '^':
 			return 2;
 		case '*':
@@ -127,6 +127,8 @@ void tokenize(char* expr) {
 			
 			temp.type = FUNCTION;
 			temp.data.func = s;
+			temp.precedence = 3;
+			temp.leftAssociative = 0;
 			
 			inQueue[inCount++] = temp;
 			
@@ -161,6 +163,8 @@ void tokenize(char* expr) {
 			
 			temp.type = OPERATOR;
 			temp.data.op = c;
+			temp.precedence = precedence(c);
+			temp.leftAssociative = isLeftAssociative(c);
 			
 			inQueue[inCount++] = temp;
 		}
@@ -198,32 +202,38 @@ void shuntYard() {
 					
 					outQueue[outCount++] = temp;
 				}
+				temp.data.op = ')';
 			}
 		}
 		
 		else if(temp.type == OPERATOR) {
-			if(unary == 1)
+			if(unary == 1) {
 				if(temp.data.op == '-')
 					temp.data.op = '~';
+				
 				else if(temp.data.op == '+')
-					temp.data.op = '#';
+					temp.data.op = '_';
+				
+				temp.precedence = precedence(temp.data.op);
+				temp.leftAssociative = isLeftAssociative(temp.data.op);
+			}
 			
-			if(isLeftAssociative(temp.data.op))
-				while(opStack.top != -1 && ((peek(&opStack).type == OPERATOR && precedence(temp.data.op) <= precedence(peek(&opStack).data.op)) || peek(&opStack).type == FUNCTION))
+			if(temp.leftAssociative)
+				while(opStack.top != -1 && (peek(&opStack).type == OPERATOR || peek(&opStack).type == FUNCTION) && temp.precedence <= peek(&opStack).precedence)
 					outQueue[outCount++] = pop(&opStack);
 			
 			else
-				while(opStack.top != -1 && peek(&opStack).type == OPERATOR && precedence(temp.data.op) < precedence(peek(&opStack).data.op))
+				while(opStack.top != -1 && (peek(&opStack).type == OPERATOR || peek(&opStack).type == FUNCTION) && temp.precedence < peek(&opStack).precedence)
 					outQueue[outCount++] = pop(&opStack);
 			
 			push(&opStack, temp);
 		}
 		
-		else if(temp.type == FUNCTION) {
+		else {
 			push(&opStack, temp);
 		}
 		
-		unary = (temp.type != CONSTANT);
+		unary = !(temp.type == CONSTANT || (temp.type == PARENTHESIS && temp.data.op == ')'));
 	}
 	
 	while(opStack.top != -1) {
