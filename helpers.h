@@ -1,4 +1,22 @@
 static const double PI = 3.141519265358979323846;
+static const double E = 2.718281828;
+
+int isSymbol(char* s) {
+	
+	return (strcmp(s, "e") == 0 || strcmp(s, "pi") == 0 || strcmp(s, "inf") == 0);
+}
+
+double getSymbol(char* s) {
+	
+	if(strcmp(s, "e") == 0)
+		return E;
+	
+	if(strcmp(s, "pi") == 0)
+		return PI;
+	
+	if(strcmp(s, "inf") == 0)
+		return INFINITY;
+}
 
 double factorial(double d) {
 	

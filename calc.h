@@ -47,7 +47,7 @@ void tokenize(char* expr) {
 	double d;
 	struct token temp;
 	
-	while((c = *expr++) != '\0') {
+	while((c = tolower(*expr++)) != '\0') {
 		
 		if(isspace(c))
 			continue;
@@ -58,20 +58,26 @@ void tokenize(char* expr) {
 			
 			do {
 				*(s + i++) = c;
-			} while(isalpha(c = *expr++));
+			} while(isalpha(c = tolower(*expr++)));
 			
 			*(s + i) = '\0';
 			
-			if(!isFunction(s))
-				printMessage("Undefined Function", -3);
+			if(isFunction(s)) {
+				temp.type = FUNCTION;
+				temp.data.func = s;
+				temp.precedence = 3;
+				temp.leftAssociative = 0;
+			}
 			
-			temp.type = FUNCTION;
-			temp.data.func = s;
-			temp.precedence = 3;
-			temp.leftAssociative = 0;
+			else if(isSymbol(s)) {
+				temp.type = CONSTANT;
+				temp.data.d = getSymbol(s);
+			}
+			
+			else
+				printMessage("Undefined function/symbol.", -3);
 			
 			inQueue[inCount++] = temp;
-			
 			--expr;
 		}
 		
