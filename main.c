@@ -6,9 +6,9 @@ int main(int argc, char* argv[]) {
 	int i = parseOptions(argc, argv);
 	
 	for(; i < argc; i++)
-		evaluate(argv[i]);
+		evaluate(argv[i], argc - i != 1);
 	
-	printf("%c", USE_NEWLINE ? '\0' : '\n');
+	printf("\n");
 	
 	return 0;
 }

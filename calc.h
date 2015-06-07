@@ -162,7 +162,7 @@ void execute(struct token temp) {
 					result = -d1;
 					break;
 				case '!':
-					if(floor(d1) != d1 || d1 < 0.0)
+					if(floor(d1) != d1 || d1 < 0.0 || d1 == INFINITY || d1 == -INFINITY)
 						printMessage("Factorial is only defined for natural numbers.", -5);
 					
 					result = factorial(d1);
@@ -241,7 +241,7 @@ void execute(struct token temp) {
 	outQueue[outCount++] = result;
 }
 
-void shuntYard() {
+void shuntYard(int addEndChar) {
 	
 	int unary = 1;
 	struct token temp;
@@ -316,10 +316,10 @@ void shuntYard() {
 	if(outCount != 1)
 		printMessage("Malformed expression.", -6);
 	
-	printf("%G%c", outQueue[--outCount], USE_NEWLINE ? '\n' : ' ');
+	printf("%G%c", outQueue[--outCount], addEndChar ? (USE_NEWLINE ? '\n' : ' ') : '\0');
 }
 
-void evaluate(char* expr) {
+void evaluate(char* expr, int addEndChar) {
 	
 	inCount = 0;
 	inQueue = (struct token*) malloc(strlen(expr) * sizeof(struct token));
@@ -331,7 +331,7 @@ void evaluate(char* expr) {
 	outQueue = (double*) malloc(strlen(expr) * sizeof(double));
 	
 	tokenize(expr);
-	shuntYard();
+	shuntYard(addEndChar);
 	
 	free(inQueue);
 	free(opStack);
