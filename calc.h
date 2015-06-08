@@ -9,7 +9,76 @@
 
 static int USE_DEGREE = 0;
 static int USE_NEWLINE = 0;
-static char* HELP_TEXT = "This is help.";
+static char* HELP_TEXT = "Usage: calc [OPTION] <EXPRESSION>...\n\
+\n\
+Options\n\
+\n\
+  The following flags can be used,\n\
+\n\
+  1. -d, consider all angles to be degrees. Results are also in degrees.\n\
+  2. -n, print results of each epressions in a new line instead of separating them by space.\n\
+  3. -h (or) --help, print help and exit.\n\
+\n\
+Operators\n\
+\n\
+The following operators are supported,\n\
+\n\
+    + --> addition\n\
+    - --> subtraction\n\
+    * --> multiplication\n\
+    / --> division\n\
+    % --> modulo\n\
+    ! --> factorial\n\
+    ^ --> exponent\n\
+\n\
+Unary '+' and '-' are also supported. '~' and '_' operators act as aliases for unary '-' and '+' respectively.\n\
+\n\
+The '$' (dollar) operator can be used to refer to the result of a particular sub-expression. Sub-expression are created using the ',' (comma) operator. For example,\n\
+\n\
+    ./calc '7 - 5, sin$1, log($1 - -$2)'\n\
+\n\
+The expression has three sub-expression.\n\
+\n\
+    $1 = 7 - 5\n\
+    $2 = sin$1 = sin(7 - 5)\n\
+    $3 = log($1 - -$2) = log(7 - 5 - -sin(7 - 5))\n\
+\n\
+The results of all three expressions is printed in comma separated format.\n\
+\n\
+    2,0.9092974268,0.4637881228\n\
+\n\
+Functions\n\
+\n\
+  The following function are supported,\n\
+  \n\
+    sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, log (base 10), ln (base e), exp (e raised), floor, ceil, round, sqrt, abs.\n\
+  \n\
+  Trignometric function may have infinite precision related issues. For example,\n\
+  \n\
+    ./calc 'sin pi' 'cos pi'\n\
+  \n\
+  Results in,\n\
+  \n\
+    7.338823075E-05 -0.9999999973\n\
+  \n\
+  The actual values being 0 and -1. pi here is a symbolic constant.\n\
+\n\
+Symbolic Constants\n\
+\n\
+  The following symbolic constants are supported,\n\
+  \n\
+    pi    -->  3.141519265358979323846\n\
+    e     -->  2.7182818284590452354\n\
+    inf   -->  infinity\n\
+    rand  -->  random double in the range (0, 1) excluding 0 and 1. (ironic, i know...)\n\
+  \n\
+  For example,\n\
+  \n\
+    ./calc 'atan inf' 'rand, sin $1, cos($2 - $1)' '-+_+_++_--~---~+_rand'\n\
+    \n\
+    1.570796327 0.4473471527,0.4325752577,0.9998908975 0.6601152609\n\
+\n\
+";
 
 static int resultCount;
 static double* results;
@@ -21,7 +90,7 @@ static int opCount;
 static struct token* opStack;
 
 static int outCount;
-static double* outQueue;
+static double* outStack;
 
 int parseOptions(int argc, char* argv[]) {
 	
@@ -41,7 +110,7 @@ int parseOptions(int argc, char* argv[]) {
 			return i;
 	}
 	
-	printf("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSION.\nTry 'calc --help' for more information.");
+	printf("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
 	exit(-1);
 }
 
@@ -146,8 +215,8 @@ int execute(struct token temp) {
 				return 0;
 			}
 			
-			d2 = outQueue[--outCount];
-			d1 = outQueue[--outCount];
+			d2 = outStack[--outCount];
+			d1 = outStack[--outCount];
 			
 			switch(temp.data.op) {
 				case '+':
@@ -177,7 +246,7 @@ int execute(struct token temp) {
 				return 0;
 			}
 			
-			d1 = outQueue[--outCount];
+			d1 = outStack[--outCount];
 			
 			switch(temp.data.op) {
 				case '_':
@@ -212,7 +281,7 @@ int execute(struct token temp) {
 			return 0;
 		}
 		
-		d1 = outQueue[--outCount];
+		d1 = outStack[--outCount];
 		
 		if(strcmp(temp.data.func, "sin") == 0)
 			result = USE_DEGREE ? sin(toRadians(d1)) : sin(d1);
@@ -275,7 +344,7 @@ int execute(struct token temp) {
 			result = abs(d1);
 	}
 	
-	outQueue[outCount++] = result;
+	outStack[outCount++] = result;
 	
 	return 1;
 }
@@ -297,7 +366,7 @@ int emptyOpStack() {
 		return 0;
 	}
 	
-	*(results + resultCount++) = outQueue[--outCount];
+	*(results + resultCount++) = outStack[--outCount];
 	return 1;
 }
 
@@ -310,7 +379,7 @@ void shuntYard() {
 		temp = inQueue[i];
 		
 		if(temp.type == CONSTANT)
-			outQueue[outCount++] = temp.data.d;
+			outStack[outCount++] = temp.data.d;
 		
 		else if(temp.type == PARENTHESIS) {
 			if(temp.data.op == '(') {
@@ -331,7 +400,7 @@ void shuntYard() {
 						break;
 					
 					if(temp.type == CONSTANT)
-						outQueue[outCount++] = temp.data.d;
+						outStack[outCount++] = temp.data.d;
 					else
 						if(!execute(temp))
 							return;
@@ -383,7 +452,7 @@ void shuntYard() {
 		return;
 	
 	for(int i = 0; i < resultCount; i++)
-		printf("%G%c", *(results + i), resultCount - i == 1 ? '\0' : ',');
+		printf("%.10G%c", *(results + i), resultCount - i == 1 ? '\0' : ',');
 }
 
 void evaluate(char* expr, int addEndChar) {
@@ -395,18 +464,18 @@ void evaluate(char* expr, int addEndChar) {
 	opStack = (struct token*) malloc(strlen(expr) * sizeof(struct token));
 	
 	outCount = 0;
-	outQueue = (double*) malloc(strlen(expr) * sizeof(double));
+	outStack = (double*) malloc(strlen(expr) * sizeof(double));
 	
 	resultCount = 0;
 	results = (double*) malloc(strlen(expr) * sizeof(double));
 	
-	if(tokenize(expr));
+	if(tokenize(expr))
 		shuntYard();
 	
 	printf("%c", addEndChar ? (USE_NEWLINE ? '\n' : ' ') : '\0');
 	
 	free(inQueue);
 	free(opStack);
-	free(outQueue);
+	free(outStack);
 	free(results);
 }

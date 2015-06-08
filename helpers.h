@@ -1,9 +1,11 @@
-static const double E = 2.718281828;
+#include <time.h>
+
+static const double E = 2.7182818284590452354;
 static const double PI = 3.141519265358979323846;
 
 int isSymbol(char* s) {
 	
-	return (strcmp(s, "e") == 0 || strcmp(s, "pi") == 0 || strcmp(s, "inf") == 0);
+	return (strcmp(s, "e") == 0 || strcmp(s, "pi") == 0 || strcmp(s, "inf") == 0 || strcmp(s, "rand") == 0);
 }
 
 double getSymbol(char* s) {
@@ -16,6 +18,12 @@ double getSymbol(char* s) {
 	
 	if(strcmp(s, "inf") == 0)
 		return INFINITY;
+	
+	if(strcmp(s, "rand") == 0) {
+		srand((unsigned) time(NULL) + rand());
+		
+		return (double) rand() / (double) RAND_MAX;
+	}
 }
 
 double factorial(double d) {
@@ -80,7 +88,7 @@ int isOperator(char c) {
 
 int isFunction(char* s) {
 	
-	return (strcmp(s, "sin") == 0 || strcmp(s, "cos") == 0 || strcmp(s, "tan") == 0 || strcmp(s, "asin") == 0 || strcmp(s, "acos") == 0 || strcmp(s, "atan") == 0 || strcmp(s, "exp") == 0 || strcmp(s, "floor") == 0 || strcmp(s, "ceil") == 0 || strcmp(s, "round") == 0 || strcmp(s, "log") == 0 || strcmp(s, "ln") == 0 || strcmp(s, "sinh") == 0 || strcmp(s, "cosh") == 0 || strcmp(s, "tanh") == 0 || strcmp(s, "sqrt") == 0 || strcmp(s, "abs") == 0);
+	return (strcmp(s, "sin") == 0 || strcmp(s, "cos") == 0 || strcmp(s, "tan") == 0 || strcmp(s, "asin") == 0 || strcmp(s, "acos") == 0 || strcmp(s, "atan") == 0 || strcmp(s, "sinh") == 0 || strcmp(s, "cosh") == 0 || strcmp(s, "tanh") == 0 || strcmp(s, "asinh") == 0 || strcmp(s, "acosh") == 0 || strcmp(s, "atanh") == 0 || strcmp(s, "exp") == 0 || strcmp(s, "floor") == 0 || strcmp(s, "ceil") == 0 || strcmp(s, "round") == 0 || strcmp(s, "log") == 0 || strcmp(s, "ln") == 0 || strcmp(s, "sqrt") == 0 || strcmp(s, "abs") == 0);
 }
 
 int isLeftAssociative(char c) {
