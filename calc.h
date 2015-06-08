@@ -11,6 +11,9 @@ static int USE_DEGREE = 0;
 static int USE_NEWLINE = 0;
 static char* HELP_TEXT = "This is help.";
 
+static int resultCount;
+static double* results;
+
 static int inCount;
 static struct token* inQueue;
 
@@ -29,17 +32,20 @@ int parseOptions(int argc, char* argv[]) {
 		else if(strcmp(argv[i], "-d") == 0)
 			USE_DEGREE = 1;
 		
-		else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
-			printMessage(HELP_TEXT, 1);
+		else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+			printf("%s", HELP_TEXT);
+			exit(1);
+		}
 		
 		else
 			return i;
 	}
 	
-	printMessage("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSION.\nTry 'calc --help' for more information.", -1);
+	printf("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSION.\nTry 'calc --help' for more information.");
+	exit(-1);
 }
 
-void tokenize(char* expr) {
+int tokenize(char* expr) {
 	
 	int i;
 	char c;
@@ -74,26 +80,29 @@ void tokenize(char* expr) {
 				temp.data.d = getSymbol(s);
 			}
 			
-			else
-				printMessage("Undefined function/symbol.", -3);
+			else {
+				printf("Undefined function/symbol.");
+				return 0;
+			}
 			
-			inQueue[inCount++] = temp;
 			--expr;
 		}
 		
 		else if(isdigit(c) || c == '.') {
 			d = strtod(--expr, &s);
 			
-			if(expr == (char*) s)
-				printMessage("Invalid constant", -3);
+			if(expr == (char*) s) {
+				printf("Invalid constant");
+				return 0;
+			}
 			
-			if(errno != 0)
-				printMessage("Constant to large for double.", -3);
+			if(errno != 0) {
+				printf("Constant to large for double.");
+				return 0;
+			}
 			
 			temp.type = CONSTANT;
 			temp.data.d = d;
-			
-			inQueue[inCount++] = temp;
 			
 			expr = (char*) s;
 		}
@@ -101,33 +110,41 @@ void tokenize(char* expr) {
 		else if(c == '(' || c == ')') {
 			temp.type = PARENTHESIS;
 			temp.data.op = c;
-			
-			inQueue[inCount++] = temp;
+		}
+		
+		else if(c == ',') {
+			temp.type = SEPARATOR;
+			temp.data.op = c;
 		}
 		
 		else if(isOperator(c)) {
-			
 			temp.type = OPERATOR;
 			temp.data.op = c;
 			temp.precedence = precedence(c);
 			temp.leftAssociative = isLeftAssociative(c);
-			
-			inQueue[inCount++] = temp;
 		}
 		
-		else
-			printMessage("Invalid token.", -3);
+		else {
+			printf("Invalid token.");
+			return 0;
+		}
+		
+		inQueue[inCount++] = temp;
 	}
+	
+	return 1;
 }
 
-void execute(struct token temp) {
+int execute(struct token temp) {
 	
 	double d1, d2, result;
 	
 	if(temp.type == OPERATOR) {
 		if(isBinary(temp.data.op) == 1) {
-			if(outCount < 2)
-				printMessage("Malformed Expression.", -5);
+			if(outCount < 2) {
+				printf("Malformed Expression.");
+				return 0;
+			}
 			
 			d2 = outQueue[--outCount];
 			d1 = outQueue[--outCount];
@@ -155,8 +172,10 @@ void execute(struct token temp) {
 		}
 		
 		else {
-			if(outCount < 1)
-				printMessage("Malformed Expression.", -5);
+			if(outCount < 1) {
+				printf("Malformed Expression.");
+				return 0;
+			}
 			
 			d1 = outQueue[--outCount];
 			
@@ -168,18 +187,30 @@ void execute(struct token temp) {
 					result = -d1;
 					break;
 				case '!':
-					if(floor(d1) != d1 || d1 < 0.0 || d1 == INFINITY || d1 == -INFINITY)
-						printMessage("Factorial is only defined for natural numbers.", -5);
+					if(floor(d1) != d1 || d1 < 0.0 || d1 == INFINITY) {
+						printf("Factorial is only defined for natural numbers.");
+						return 0;
+					}
 					
 					result = factorial(d1);
+					break;
+				case '$':
+					if(floor(d1) != d1 || d1 < 0 || d1 > resultCount) {
+						printf("Invalid result index.");
+						return 0;
+					}
+					
+					result = results[(int) d1 - 1];
 					break;
 			}
 		}
 	}
 	
 	else {
-		if(outCount < 1)
-			printMessage("Malformed Expression.", -5);
+		if(outCount < 1) {
+			printf("Malformed Expression.");
+			return 0;
+		}
 		
 		d1 = outQueue[--outCount];
 		
@@ -245,9 +276,32 @@ void execute(struct token temp) {
 	}
 	
 	outQueue[outCount++] = result;
+	
+	return 1;
 }
 
-void shuntYard(int addEndChar) {
+int emptyOpStack() {
+	
+	while(opCount != 0) {
+		if(opStack[opCount - 1].data.op == '(') {
+			printf("Mismatched '('.");
+			return 0;
+		}
+		
+		if(!execute(opStack[--opCount]))
+			return 0;
+	}
+	
+	if(outCount != 1) {
+		printf("Malformed expression.");
+		return 0;
+	}
+	
+	*(results + resultCount++) = outQueue[--outCount];
+	return 1;
+}
+
+void shuntYard() {
 	
 	int unary = 1;
 	struct token temp;
@@ -259,14 +313,17 @@ void shuntYard(int addEndChar) {
 			outQueue[outCount++] = temp.data.d;
 		
 		else if(temp.type == PARENTHESIS) {
-			if(temp.data.op == '(')
+			if(temp.data.op == '(') {
 				opStack[opCount++] = temp;
+			}
 			
 			else if(temp.data.op == ')') {
 				
 				while(1) {
-					if(opCount == 0)
-						printMessage("Mismatched ')'.", -2);
+					if(opCount == 0) {
+						printf("Mismatched ')'.");
+						return;
+					}
 					
 					temp = opStack[--opCount];
 					
@@ -276,7 +333,8 @@ void shuntYard(int addEndChar) {
 					if(temp.type == CONSTANT)
 						outQueue[outCount++] = temp.data.d;
 					else
-						execute(temp);
+						if(!execute(temp))
+							return;
 				}
 				temp.data.op = ')';
 			}
@@ -294,15 +352,24 @@ void shuntYard(int addEndChar) {
 				temp.leftAssociative = isLeftAssociative(temp.data.op);
 			}
 			
-			if(temp.leftAssociative)
+			if(temp.leftAssociative) {
 				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence <= opStack[opCount - 1].precedence)
-					execute(opStack[--opCount]);
+					if(!execute(opStack[--opCount]))
+						return;
+			}
 			
-			else
+			else {
 				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence < opStack[opCount - 1].precedence)
-					execute(opStack[--opCount]);
+					if(!execute(opStack[--opCount]))
+						return;
+			}
 			
 			opStack[opCount++] = temp;
+		}
+		
+		else if(temp.type == SEPARATOR) {
+			if(!emptyOpStack())
+				return;
 		}
 		
 		else {
@@ -312,17 +379,11 @@ void shuntYard(int addEndChar) {
 		unary = !(temp.type == CONSTANT || (temp.type == PARENTHESIS && temp.data.op == ')'));
 	}
 	
-	while(opCount != 0) {
-		if(opStack[opCount - 1].data.op == '(')
-			printMessage("Mismatched '('.", -2);
-		
-		execute(opStack[--opCount]);
-	}
+	if(!emptyOpStack())
+		return;
 	
-	if(outCount != 1)
-		printMessage("Malformed expression.", -6);
-	
-	printf("%G%c", outQueue[--outCount], addEndChar ? (USE_NEWLINE ? '\n' : ' ') : '\0');
+	for(int i = 0; i < resultCount; i++)
+		printf("%G%c", *(results + i), resultCount - i == 1 ? '\0' : ',');
 }
 
 void evaluate(char* expr, int addEndChar) {
@@ -336,10 +397,16 @@ void evaluate(char* expr, int addEndChar) {
 	outCount = 0;
 	outQueue = (double*) malloc(strlen(expr) * sizeof(double));
 	
-	tokenize(expr);
-	shuntYard(addEndChar);
+	resultCount = 0;
+	results = (double*) malloc(strlen(expr) * sizeof(double));
+	
+	if(tokenize(expr));
+		shuntYard();
+	
+	printf("%c", addEndChar ? (USE_NEWLINE ? '\n' : ' ') : '\0');
 	
 	free(inQueue);
 	free(opStack);
 	free(outQueue);
+	free(results);
 }

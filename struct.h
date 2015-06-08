@@ -2,6 +2,7 @@
 #define OPERATOR 1
 #define FUNCTION 2
 #define PARENTHESIS 3
+#define SEPARATOR 4
 
 union t {
 	

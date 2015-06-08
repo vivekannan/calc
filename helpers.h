@@ -1,5 +1,5 @@
-static const double PI = 3.141519265358979323846;
 static const double E = 2.718281828;
+static const double PI = 3.141519265358979323846;
 
 int isSymbol(char* s) {
 	
@@ -38,15 +38,10 @@ double toDegrees(double d) {
 	return d * (180.0 / PI);
 }
 
-void printMessage(char* message, int exitCode) {
-	
-	printf("%s\n", message);
-	exit(exitCode);
-}
-
 int precedence(char c) {
 	
 	switch(c) {
+		case '$':
 		case '!':
 			return 5;
 		case '~':
@@ -76,6 +71,7 @@ int isOperator(char c) {
 		case '!':
 		case '~':
 		case '_':
+		case '$':
 			return 1;
 		default:
 			return 0;
@@ -100,6 +96,7 @@ int isLeftAssociative(char c) {
 		case '!':
 		case '~':
 		case '_':
+		case '$':
 			return 0;
 	}
 }
