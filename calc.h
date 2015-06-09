@@ -341,7 +341,7 @@ int execute(struct token temp) {
 			result = sqrt(d1);
 		
 		else if(strcmp(temp.data.func, "abs") == 0)
-			result = abs(d1);
+			result = fabs(d1);
 		
 		else if(strcmp(temp.data.func, "sgn") == 0)
 			result = d1 > 0 ? 1 : (d1 < 0 ? -1 : 0);
