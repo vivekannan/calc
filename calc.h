@@ -342,6 +342,9 @@ int execute(struct token temp) {
 		
 		else if(strcmp(temp.data.func, "abs") == 0)
 			result = abs(d1);
+		
+		else if(strcmp(temp.data.func, "sgn") == 0)
+			result = d1 > 0 ? 1 : (d1 < 0 ? -1 : 0);
 	}
 	
 	outStack[outCount++] = result;
@@ -422,6 +425,7 @@ void shuntYard() {
 			}
 			
 			if(temp.leftAssociative) {
+				printf("%c\n", temp.data.op);
 				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence <= opStack[opCount - 1].precedence)
 					if(!execute(opStack[--opCount]))
 						return;

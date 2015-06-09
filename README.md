@@ -71,7 +71,9 @@ The results of all three expressions is printed in comma separated format.
 
   The following function are supported,
   
-    sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, log (base 10), ln (base e), exp (e raised), floor, ceil, round, sqrt, abs.
+    sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, log (base 10), ln (base e), exp (e raised), floor, ceil, round, sqrt, abs, sgn.
+  
+  sgn returns 1 if positive, -1 if negative else 0.
   
   Trignometric function may have infinite precision related issues. For example,
   
