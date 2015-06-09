@@ -6,7 +6,7 @@
 
   Compile with,
   
-    gcc -std=c99 -o calc main.c -lm
+    gcc -std=c99 -o calc main.c calc.c helpers.c -lm
 
   Run with,
   
@@ -25,7 +25,7 @@
 ##Expressions
   calc supports multiple expressions in a single call. For example,
   
-    ./calc '3.4' 'atan(1/0) - 3.141519265358979323846 * sqrt 3'
+    ./calc '3.4' 'atan(1/0) - 3.14159265358979323846 * sqrt 3'
   
   The result of each expression is printed either in the same line separated by space or in separate lines if the -n flag is used.
   
@@ -89,7 +89,7 @@ The results of all three expressions is printed in comma separated format.
 
   The following symbolic constants are supported,
   
-    pi    -->  3.141519265358979323846
+    pi    -->  3.14159265358979323846
     e     -->  2.7182818284590452354
     g     -->  1.6180339887498948482
     inf   -->  infinity
