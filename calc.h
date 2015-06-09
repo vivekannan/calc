@@ -1,3 +1,6 @@
+#ifndef CALC_H
+#define CALC_H
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
@@ -483,3 +486,5 @@ void evaluate(char* expr, int addEndChar) {
 	free(outStack);
 	free(results);
 }
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef HELPERS_H
+#define HELPERS_H 1
+
 #include <time.h>
 
 static const double G = 1.6180339887498948482;
@@ -118,3 +121,5 @@ int isBinary(char c) {
 	
 	return (c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '^');
 }
+
+#endif

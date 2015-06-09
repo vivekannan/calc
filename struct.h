@@ -1,3 +1,6 @@
+#ifndef STRUCT_H
+#define STRUCT_H 1
+
 #define CONSTANT 0
 #define OPERATOR 1
 #define FUNCTION 2
@@ -19,3 +22,5 @@ struct token {
 	int precedence;
 	int leftAssociative;
 };
+
+#endif
