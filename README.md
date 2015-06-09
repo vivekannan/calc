@@ -99,3 +99,9 @@ The results of all three expressions is printed in comma separated format.
     ./calc 'atan inf' 'rand, sin $1, cos($2 - $1)' '-+_+_++_--~---~+_rand'
     
     1.570796327 0.4473471527,0.4325752577,0.9998908975 0.6601152609
+
+##TODO
+
+  1. Add support for complex numbers.
+  2. Implicit multiplication. (sin 3 cos 4 --> sin 3 * cos 4, (9 - 4) (sin 3) --> (9 - 4) * (sin 3))
+  3. Symbolic mathematics.
