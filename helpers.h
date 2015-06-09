@@ -1,11 +1,12 @@
 #include <time.h>
 
+static const double G = 1.6180339887498948482;
 static const double E = 2.7182818284590452354;
 static const double PI = 3.141519265358979323846;
 
 int isSymbol(char* s) {
 	
-	return (strcmp(s, "e") == 0 || strcmp(s, "pi") == 0 || strcmp(s, "inf") == 0 || strcmp(s, "rand") == 0);
+	return (strcmp(s, "e") == 0 || strcmp(s, "pi") == 0 || strcmp(s, "inf") == 0 || strcmp(s, "rand") == 0 || strcmp(s, "g") == 0);
 }
 
 double getSymbol(char* s) {
@@ -24,6 +25,9 @@ double getSymbol(char* s) {
 		
 		return (double) rand() / (double) RAND_MAX;
 	}
+	
+	if(strcmp(s, "g") == 0)
+		return G;
 }
 
 double factorial(double d) {
