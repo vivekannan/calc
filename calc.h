@@ -455,7 +455,7 @@ void shuntYard() {
 		return;
 	
 	for(int i = 0; i < resultCount; i++)
-		printf("%.10G%c", *(results + i), resultCount - i == 1 ? '\0' : ',');
+		printf("%.10G%s", *(results + i), resultCount - i == 1 ? "" : ",");
 }
 
 void evaluate(char* expr, int addEndChar) {
@@ -475,7 +475,7 @@ void evaluate(char* expr, int addEndChar) {
 	if(tokenize(expr))
 		shuntYard();
 	
-	printf("%c", addEndChar ? (USE_NEWLINE ? '\n' : ' ') : '\0');
+	printf("%s", addEndChar ? (USE_NEWLINE ? "\n" : " ") : "");
 	
 	free(inQueue);
 	free(opStack);
