@@ -66,7 +66,7 @@ Symbolic Constants\n\
 \n\
   The following symbolic constants are supported,\n\
   \n\
-    pi    -->  3.141519265358979323846\n\
+    pi    -->  3.14159265358979323846\n\
     e     -->  2.7182818284590452354\n\
     inf   -->  infinity\n\
     rand  -->  random double in the range (0, 1) excluding 0 and 1. (ironic, i know...)\n\
