@@ -91,6 +91,7 @@ The results of all three expressions is printed in comma separated format.
   
     pi    -->  3.141519265358979323846
     e     -->  2.7182818284590452354
+    g     -->  1.6180339887498948482
     inf   -->  infinity
     rand  -->  random double in the range (0, 1). (ironic, i know...)
   
