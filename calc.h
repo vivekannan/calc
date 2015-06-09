@@ -150,7 +150,7 @@ int tokenize(char* expr) {
 			}
 			
 			else {
-				printf("Undefined function/symbol.");
+				printf("Undefined function/symbol. %s", s);
 				return 0;
 			}
 			
@@ -161,7 +161,7 @@ int tokenize(char* expr) {
 			d = strtod(--expr, &s);
 			
 			if(expr == (char*) s) {
-				printf("Invalid constant");
+				printf("Invalid constant.");
 				return 0;
 			}
 			
@@ -194,7 +194,7 @@ int tokenize(char* expr) {
 		}
 		
 		else {
-			printf("Invalid token.");
+			printf("Invalid token. %c", c);
 			return 0;
 		}
 		
@@ -425,7 +425,6 @@ void shuntYard() {
 			}
 			
 			if(temp.leftAssociative) {
-				printf("%c\n", temp.data.op);
 				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence <= opStack[opCount - 1].precedence)
 					if(!execute(opStack[--opCount]))
 						return;
