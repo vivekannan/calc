@@ -158,6 +158,7 @@ int tokenize(char* expr) {
 		}
 		
 		else if(isdigit(c) || c == '.') {
+			errno = 0;
 			d = strtod(--expr, &s);
 			
 			if(expr == (char*) s) {
