@@ -2,6 +2,6 @@
 #define CALC_H
 
 int parseOptions(int, char**);
-void evaluate(char*, int);
+int evaluate(char*, int);
 
 #endif

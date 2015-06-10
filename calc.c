@@ -104,7 +104,7 @@ int parseOptions(int argc, char* argv[]) {
 			USE_DEGREE = 1;
 		
 		else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
-			printf("%s", HELP_TEXT);
+			fprintf(stderr, "%s", HELP_TEXT);
 			exit(1);
 		}
 		
@@ -112,7 +112,7 @@ int parseOptions(int argc, char* argv[]) {
 			return i;
 	}
 	
-	printf("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
+	fprintf(stderr, "calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
 	exit(-1);
 }
 
@@ -132,6 +132,10 @@ int tokenize(char* expr) {
 		if(isalpha(c)) {
 			i = 0;
 			s = (char*) malloc((strlen(expr) + 2) * sizeof(char));
+			if (!s) {
+				fprintf(stderr, "Failed to malloc");
+				return 0;
+			}
 			
 			do {
 				*(s + i++) = c;
@@ -152,7 +156,7 @@ int tokenize(char* expr) {
 			}
 			
 			else {
-				printf("Undefined function/symbol. %s", s);
+				fprintf(stderr, "Undefined function/symbol. %s", s);
 				return 0;
 			}
 			
@@ -164,12 +168,12 @@ int tokenize(char* expr) {
 			d = strtod(--expr, &s);
 			
 			if(expr == (char*) s) {
-				printf("Invalid constant.");
+				fprintf(stderr, "Invalid constant.");
 				return 0;
 			}
 			
 			if(errno != 0) {
-				printf("Constant to large for double.");
+				fprintf(stderr, "Constant to large for double.");
 				return 0;
 			}
 			
@@ -197,7 +201,7 @@ int tokenize(char* expr) {
 		}
 		
 		else {
-			printf("Invalid token. %c", c);
+			fprintf(stderr, "Invalid token. %c", c);
 			return 0;
 		}
 		
@@ -214,7 +218,7 @@ int execute(struct token temp) {
 	if(temp.type == OPERATOR) {
 		if(isBinary(temp.data.op) == 1) {
 			if(outCount < 2) {
-				printf("Malformed Expression.");
+				fprintf(stderr, "Malformed Expression.");
 				return 0;
 			}
 			
@@ -245,7 +249,7 @@ int execute(struct token temp) {
 		
 		else {
 			if(outCount < 1) {
-				printf("Malformed Expression.");
+				fprintf(stderr, "Malformed Expression.");
 				return 0;
 			}
 			
@@ -260,7 +264,7 @@ int execute(struct token temp) {
 					break;
 				case '!':
 					if(floor(d1) != d1 || d1 < 0.0 || d1 == INFINITY) {
-						printf("Factorial is only defined for natural numbers.");
+						fprintf(stderr, "Factorial is only defined for natural numbers.");
 						return 0;
 					}
 					
@@ -268,7 +272,7 @@ int execute(struct token temp) {
 					break;
 				case '$':
 					if(floor(d1) != d1 || d1 < 0 || d1 > resultCount) {
-						printf("Invalid result index.");
+						fprintf(stderr, "Invalid result index.");
 						return 0;
 					}
 					
@@ -280,7 +284,7 @@ int execute(struct token temp) {
 	
 	else {
 		if(outCount < 1) {
-			printf("Malformed Expression.");
+			fprintf(stderr, "Malformed Expression.");
 			return 0;
 		}
 		
@@ -359,7 +363,7 @@ int emptyOpStack() {
 	
 	while(opCount != 0) {
 		if(opStack[opCount - 1].data.op == '(') {
-			printf("Mismatched '('.");
+			fprintf(stderr, "Mismatched '('.");
 			return 0;
 		}
 		
@@ -368,7 +372,7 @@ int emptyOpStack() {
 	}
 	
 	if(outCount != 1) {
-		printf("Malformed expression.");
+		fprintf(stderr, "Malformed expression.");
 		return 0;
 	}
 	
@@ -376,7 +380,7 @@ int emptyOpStack() {
 	return 1;
 }
 
-void shuntYard() {
+int shuntYard() {
 	
 	int unary = 1;
 	struct token temp;
@@ -396,8 +400,8 @@ void shuntYard() {
 				
 				while(1) {
 					if(opCount == 0) {
-						printf("Mismatched ')'.");
-						return;
+						fprintf(stderr, "Mismatched ')'.");
+						return 0;
 					}
 					
 					temp = opStack[--opCount];
@@ -409,7 +413,7 @@ void shuntYard() {
 						outStack[outCount++] = temp.data.d;
 					else
 						if(!execute(temp))
-							return;
+							return 0;
 				}
 				temp.data.op = ')';
 			}
@@ -430,13 +434,13 @@ void shuntYard() {
 			if(temp.leftAssociative) {
 				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence <= opStack[opCount - 1].precedence)
 					if(!execute(opStack[--opCount]))
-						return;
+						return 0;
 			}
 			
 			else {
 				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence < opStack[opCount - 1].precedence)
 					if(!execute(opStack[--opCount]))
-						return;
+						return 0;
 			}
 			
 			opStack[opCount++] = temp;
@@ -444,7 +448,7 @@ void shuntYard() {
 		
 		else if(temp.type == SEPARATOR) {
 			if(!emptyOpStack())
-				return;
+				return 0;
 		}
 		
 		else {
@@ -455,33 +459,50 @@ void shuntYard() {
 	}
 	
 	if(!emptyOpStack())
-		return;
+		return 0;
 	
 	for(int i = 0; i < resultCount; i++)
 		printf("%.10G%s", *(results + i), resultCount - i == 1 ? "" : ",");
+
+	return 1;
 }
 
-void evaluate(char* expr, int addEndChar) {
+int evaluate(char* expr, int addEndChar) {
+	int len = strlen(expr);
+	int ret = 1;
 	
 	inCount = 0;
 	inQueue = (struct token*) malloc(strlen(expr) * sizeof(struct token));
+	if (!inQueue) goto failure;
 	
 	opCount = 0;
 	opStack = (struct token*) malloc(strlen(expr) * sizeof(struct token));
+	if (!opStack) goto failure;
 	
 	outCount = 0;
 	outStack = (double*) malloc(strlen(expr) * sizeof(double));
+	if (!outStack) goto failure;
 	
 	resultCount = 0;
 	results = (double*) malloc(strlen(expr) * sizeof(double));
+	if (!results) goto failure;
 	
 	if(tokenize(expr))
-		shuntYard();
+		ret = shuntYard();
+	else
+		ret = 0;
 	
 	printf("%s", addEndChar ? (USE_NEWLINE ? "\n" : " ") : "");
+	goto leave;
 	
+failure:
+	fprintf(stderr, "Failed to malloc");
+	ret = 0;
+
+leave:
 	free(inQueue);
 	free(opStack);
 	free(outStack);
 	free(results);
+	return ret;
 }

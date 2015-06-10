@@ -6,7 +6,7 @@
 
   Compile with,
   
-    gcc -std=c99 -o calc main.c calc.c helpers.c -lm
+    make
 
   Run with,
   
