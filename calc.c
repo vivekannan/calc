@@ -104,7 +104,7 @@ int parseOptions(int argc, char* argv[]) {
 			USE_DEGREE = 1;
 		
 		else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
-			printf("%s", HELP_TEXT);
+			fprintf(stderr, "%s", HELP_TEXT);
 			exit(1);
 		}
 		
@@ -112,7 +112,7 @@ int parseOptions(int argc, char* argv[]) {
 			return i;
 	}
 	
-	printf("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
+	fprintf(stderr, "calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
 	exit(-1);
 }
 
@@ -133,7 +133,7 @@ int tokenize(char* expr) {
 			i = 0;
 			s = (char*) malloc((strlen(expr) + 2) * sizeof(char));
 			if (!s) {
-				printf("Failed to malloc");
+				fprintf(stderr, "Failed to malloc");
 				return 0;
 			}
 			
@@ -156,7 +156,7 @@ int tokenize(char* expr) {
 			}
 			
 			else {
-				printf("Undefined function/symbol. %s", s);
+				fprintf(stderr, "Undefined function/symbol. %s", s);
 				return 0;
 			}
 			
@@ -168,12 +168,12 @@ int tokenize(char* expr) {
 			d = strtod(--expr, &s);
 			
 			if(expr == (char*) s) {
-				printf("Invalid constant.");
+				fprintf(stderr, "Invalid constant.");
 				return 0;
 			}
 			
 			if(errno != 0) {
-				printf("Constant to large for double.");
+				fprintf(stderr, "Constant to large for double.");
 				return 0;
 			}
 			
@@ -201,7 +201,7 @@ int tokenize(char* expr) {
 		}
 		
 		else {
-			printf("Invalid token. %c", c);
+			fprintf(stderr, "Invalid token. %c", c);
 			return 0;
 		}
 		
@@ -218,7 +218,7 @@ int execute(struct token temp) {
 	if(temp.type == OPERATOR) {
 		if(isBinary(temp.data.op) == 1) {
 			if(outCount < 2) {
-				printf("Malformed Expression.");
+				fprintf(stderr, "Malformed Expression.");
 				return 0;
 			}
 			
@@ -249,7 +249,7 @@ int execute(struct token temp) {
 		
 		else {
 			if(outCount < 1) {
-				printf("Malformed Expression.");
+				fprintf(stderr, "Malformed Expression.");
 				return 0;
 			}
 			
@@ -264,7 +264,7 @@ int execute(struct token temp) {
 					break;
 				case '!':
 					if(floor(d1) != d1 || d1 < 0.0 || d1 == INFINITY) {
-						printf("Factorial is only defined for natural numbers.");
+						fprintf(stderr, "Factorial is only defined for natural numbers.");
 						return 0;
 					}
 					
@@ -272,7 +272,7 @@ int execute(struct token temp) {
 					break;
 				case '$':
 					if(floor(d1) != d1 || d1 < 0 || d1 > resultCount) {
-						printf("Invalid result index.");
+						fprintf(stderr, "Invalid result index.");
 						return 0;
 					}
 					
@@ -284,7 +284,7 @@ int execute(struct token temp) {
 	
 	else {
 		if(outCount < 1) {
-			printf("Malformed Expression.");
+			fprintf(stderr, "Malformed Expression.");
 			return 0;
 		}
 		
@@ -363,7 +363,7 @@ int emptyOpStack() {
 	
 	while(opCount != 0) {
 		if(opStack[opCount - 1].data.op == '(') {
-			printf("Mismatched '('.");
+			fprintf(stderr, "Mismatched '('.");
 			return 0;
 		}
 		
@@ -372,7 +372,7 @@ int emptyOpStack() {
 	}
 	
 	if(outCount != 1) {
-		printf("Malformed expression.");
+		fprintf(stderr, "Malformed expression.");
 		return 0;
 	}
 	
@@ -400,7 +400,7 @@ int shuntYard() {
 				
 				while(1) {
 					if(opCount == 0) {
-						printf("Mismatched ')'.");
+						fprintf(stderr, "Mismatched ')'.");
 						return 0;
 					}
 					
@@ -494,7 +494,7 @@ int evaluate(char* expr, int addEndChar) {
 	goto leave;
 	
 failure:
-	printf("memory allocation");
+	fprintf(stderr, "Failed to malloc");
 	ret = 0;
 
 leave:
