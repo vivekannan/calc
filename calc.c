@@ -51,7 +51,7 @@ int parseOptions(int argc, char* argv[]) {
 			return i;
 	}
 	
-	printf("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
+	fprintf(stderr, "calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
 	exit(-1);
 }
 
@@ -62,7 +62,7 @@ int execute(struct token temp) {
 	if(temp.type == OPERATOR) {
 		if(isBinary(temp.data.op) == 1) {
 			if(outCount < 2) {
-				printf("Malformed Expression.");
+				fprintf(stderr, "Malformed Expression.");
 				return 0;
 			}
 			
@@ -93,7 +93,7 @@ int execute(struct token temp) {
 		
 		else {
 			if(outCount < 1) {
-				printf("Malformed Expression.");
+				fprintf(stderr, "Malformed Expression.");
 				return 0;
 			}
 			
@@ -108,7 +108,7 @@ int execute(struct token temp) {
 					break;
 				case '!':
 					if(floor(d1) != d1 || d1 < 0.0 || d1 == INFINITY) {
-						printf("Factorial is only defined for natural numbers.");
+						fprintf(stderr, "Factorial is only defined for natural numbers.");
 						return 0;
 					}
 					
@@ -116,7 +116,7 @@ int execute(struct token temp) {
 					break;
 				case '$':
 					if(floor(d1) != d1 || d1 <= 0 || d1 > resultCount) {
-						printf("Invalid result index.");
+						fprintf(stderr, "Invalid result index.");
 						return 0;
 					}
 					
@@ -128,7 +128,7 @@ int execute(struct token temp) {
 	
 	else {
 		if(outCount < 1) {
-			printf("Malformed Expression.");
+			fprintf(stderr, "Malformed Expression.");
 			return 0;
 		}
 		
@@ -206,8 +206,8 @@ int execute(struct token temp) {
 int emptyOpStack() {
 	
 	while(opCount != 0) {
-		if(opStack[opCount - 1].data.op == '(') {
-			printf("Mismatched '('.");
+		if(opStack[opCount - 1].type == PARENTHESIS) {
+			fprintf(stderr, "Mismatched '('.");
 			return 0;
 		}
 		
@@ -216,7 +216,7 @@ int emptyOpStack() {
 	}
 	
 	if(outCount != 1) {
-		printf("Malformed expression.");
+		fprintf(stderr, "Malformed expression.");
 		return 0;
 	}
 	
@@ -224,7 +224,7 @@ int emptyOpStack() {
 	return 1;
 }
 
-void shuntYard(char* expr) {
+int shuntYard(char* expr) {
 	
 	int i;
 	char c;
@@ -264,8 +264,8 @@ void shuntYard(char* expr) {
 			}
 			
 			else {
-				printf("Undefined function/symbol \"%s\".", s);
-				return;
+				fprintf(stderr, "Undefined function/symbol \"%s\".", s);
+				return 0;
 			}
 			
 			--expr;
@@ -276,13 +276,13 @@ void shuntYard(char* expr) {
 			d = strtod(--expr, &s);
 			
 			if(expr == (char*) s) {
-				printf("Invalid constant.");
-				return;
+				fprintf(stderr, "Invalid constant.");
+				return 0;
 			}
 			
 			if(errno != 0) {
-				printf("Constant to large for double.");
-				return;
+				fprintf(stderr, "Constant to large for double.");
+				return 0;
 			}
 			
 			outStack[outCount++] = d;
@@ -300,8 +300,8 @@ void shuntYard(char* expr) {
 		else if(c == ')') {
 			while(1) {
 				if(opCount == 0) {
-					printf("Mismatched ')'.");
-					return;
+					fprintf(stderr, "Mismatched ')'.");
+					return 0;
 				}
 				
 				temp = opStack[--opCount];
@@ -310,14 +310,14 @@ void shuntYard(char* expr) {
 					break;
 				
 				if(!execute(temp))
-					return;
+					return 0;
 			}
 			unary = 0;
 		}
 		
 		else if(c == ',') {
 			if(!emptyOpStack())
-				return;
+				return 0;
 			unary = 1;
 		}
 		
@@ -337,23 +337,25 @@ void shuntYard(char* expr) {
 			
 			while(opCount != 0 && opStack[opCount - 1].type != PARENTHESIS && temp.precedence < (opStack[opCount - 1].precedence + temp.leftAssociative))
 				if(!execute(opStack[--opCount]))
-					return;
+					return 0;
 			
 			unary = 1;
 			opStack[opCount++] = temp;
 		}
 		
 		else {
-			printf("Invalid token. %c", c);
-			return;
+			fprintf(stderr, "Invalid token. %c", c);
+			return 0;
 		}
 	}
 	
 	if(!emptyOpStack())
-		return;
+		return 0;
 	
 	for(int i = 0; i < resultCount; i++)
 		printf("%.10G%s", *(results + i), resultCount - i == 1 ? "" : ",");
+	
+	return 1;
 }
 
 void evaluate(char* expr, int addEndChar) {
@@ -367,11 +369,25 @@ void evaluate(char* expr, int addEndChar) {
 	resultCount = 0;
 	results = (double*) malloc(strlen(expr) * sizeof(double));
 	
-	shuntYard(expr);
+	if(shuntYard(expr))
+		printf("%s", addEndChar ? (USE_NEWLINE ? "\n" : " ") : "");
 	
-	printf("%s", addEndChar ? (USE_NEWLINE ? "\n" : " ") : "");
+	else
+		fprintf(stderr, "%s", addEndChar ? (USE_NEWLINE ? "\n" : " ") : "");
 	
 	free(opStack);
 	free(outStack);
 	free(results);
+}
+
+int main(int argc, char* argv[]) {
+	
+	int i = parseOptions(argc, argv);
+	
+	for(; i < argc; i++)
+		evaluate(argv[i], argc - i != 1);
+	
+	printf("\n");
+	
+	return 0;
 }
