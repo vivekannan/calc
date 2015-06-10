@@ -489,6 +489,8 @@ int evaluate(char* expr, int addEndChar) {
 	
 	if(tokenize(expr))
 		ret = shuntYard();
+	else
+		ret = 0;
 	
 	printf("%s", addEndChar ? (USE_NEWLINE ? "\n" : " ") : "");
 	goto leave;
