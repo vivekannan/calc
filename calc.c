@@ -132,6 +132,10 @@ int tokenize(char* expr) {
 		if(isalpha(c)) {
 			i = 0;
 			s = (char*) malloc((strlen(expr) + 2) * sizeof(char));
+			if (!s) {
+				printf("Failed to malloc");
+				return 0;
+			}
 			
 			do {
 				*(s + i++) = c;
@@ -376,7 +380,7 @@ int emptyOpStack() {
 	return 1;
 }
 
-void shuntYard() {
+int shuntYard() {
 	
 	int unary = 1;
 	struct token temp;
@@ -397,7 +401,7 @@ void shuntYard() {
 				while(1) {
 					if(opCount == 0) {
 						printf("Mismatched ')'.");
-						return;
+						return 0;
 					}
 					
 					temp = opStack[--opCount];
@@ -409,7 +413,7 @@ void shuntYard() {
 						outStack[outCount++] = temp.data.d;
 					else
 						if(!execute(temp))
-							return;
+							return 0;
 				}
 				temp.data.op = ')';
 			}
@@ -430,13 +434,13 @@ void shuntYard() {
 			if(temp.leftAssociative) {
 				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence <= opStack[opCount - 1].precedence)
 					if(!execute(opStack[--opCount]))
-						return;
+						return 0;
 			}
 			
 			else {
 				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence < opStack[opCount - 1].precedence)
 					if(!execute(opStack[--opCount]))
-						return;
+						return 0;
 			}
 			
 			opStack[opCount++] = temp;
@@ -444,7 +448,7 @@ void shuntYard() {
 		
 		else if(temp.type == SEPARATOR) {
 			if(!emptyOpStack())
-				return;
+				return 0;
 		}
 		
 		else {
@@ -455,33 +459,48 @@ void shuntYard() {
 	}
 	
 	if(!emptyOpStack())
-		return;
+		return 0;
 	
 	for(int i = 0; i < resultCount; i++)
 		printf("%.10G%s", *(results + i), resultCount - i == 1 ? "" : ",");
+
+	return 1;
 }
 
-void evaluate(char* expr, int addEndChar) {
+int evaluate(char* expr, int addEndChar) {
+	int len = strlen(expr);
+	int ret = 1;
 	
 	inCount = 0;
 	inQueue = (struct token*) malloc(strlen(expr) * sizeof(struct token));
+	if (!inQueue) goto failure;
 	
 	opCount = 0;
 	opStack = (struct token*) malloc(strlen(expr) * sizeof(struct token));
+	if (!opStack) goto failure;
 	
 	outCount = 0;
 	outStack = (double*) malloc(strlen(expr) * sizeof(double));
+	if (!outStack) goto failure;
 	
 	resultCount = 0;
 	results = (double*) malloc(strlen(expr) * sizeof(double));
+	if (!results) goto failure;
 	
 	if(tokenize(expr))
-		shuntYard();
+		ret = shuntYard();
 	
 	printf("%s", addEndChar ? (USE_NEWLINE ? "\n" : " ") : "");
+	goto leave;
 	
+failure:
+	printf("memory allocation");
+	ret = 0;
+
+leave:
 	free(inQueue);
 	free(opStack);
 	free(outStack);
 	free(results);
+	return ret;
 }
