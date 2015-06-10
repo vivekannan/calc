@@ -18,65 +18,7 @@ Options\n\
   2. -n, print results of each epressions in a new line instead of separating them by space.\n\
   3. -h (or) --help, print help and exit.\n\
 \n\
-Operators\n\
-\n\
-The following operators are supported,\n\
-\n\
-    + --> addition\n\
-    - --> subtraction\n\
-    * --> multiplication\n\
-    / --> division\n\
-    % --> modulo\n\
-    ! --> factorial\n\
-    ^ --> exponent\n\
-\n\
-Unary '+' and '-' are also supported. '~' and '_' operators act as aliases for unary '-' and '+' respectively.\n\
-\n\
-The '$' (dollar) operator can be used to refer to the result of a particular sub-expression. Sub-expression are created using the ',' (comma) operator. For example,\n\
-\n\
-    ./calc '7 - 5, sin$1, log($1 - -$2)'\n\
-\n\
-The expression has three sub-expression.\n\
-\n\
-    $1 = 7 - 5\n\
-    $2 = sin$1 = sin(7 - 5)\n\
-    $3 = log($1 - -$2) = log(7 - 5 - -sin(7 - 5))\n\
-\n\
-The results of all three expressions is printed in comma separated format.\n\
-\n\
-    2,0.9092974268,0.4637881228\n\
-\n\
-Functions\n\
-\n\
-  The following function are supported,\n\
-  \n\
-    sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, log (base 10), ln (base e), exp (e raised), floor, ceil, round, sqrt, abs.\n\
-  \n\
-  Trignometric function may have infinite precision related issues. For example,\n\
-  \n\
-    ./calc 'sin pi' 'cos pi'\n\
-  \n\
-  Results in,\n\
-  \n\
-    7.338823075E-05 -0.9999999973\n\
-  \n\
-  The actual values being 0 and -1. pi here is a symbolic constant.\n\
-\n\
-Symbolic Constants\n\
-\n\
-  The following symbolic constants are supported,\n\
-  \n\
-    pi    -->  3.14159265358979323846\n\
-    e     -->  2.7182818284590452354\n\
-    inf   -->  infinity\n\
-    rand  -->  random double in the range (0, 1) excluding 0 and 1. (ironic, i know...)\n\
-  \n\
-  For example,\n\
-  \n\
-    ./calc 'atan inf' 'rand, sin $1, cos($2 - $1)' '-+_+_++_--~---~+_rand'\n\
-    \n\
-    1.570796327 0.4473471527,0.4325752577,0.9998908975 0.6601152609\n\
-\n\
+Visit https://github.com/vivekannan/calc/ for more info.\n\
 "
 
 static int USE_DEGREE = 0;
@@ -84,9 +26,6 @@ static int USE_NEWLINE = 0;
 
 static int resultCount;
 static double* results;
-
-static int inCount;
-static struct token* inQueue;
 
 static int opCount;
 static struct token* opStack;
@@ -114,97 +53,6 @@ int parseOptions(int argc, char* argv[]) {
 	
 	printf("calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
 	exit(-1);
-}
-
-int tokenize(char* expr) {
-	
-	int i;
-	char c;
-	char* s;
-	double d;
-	struct token temp;
-	
-	while((c = tolower(*expr++)) != '\0') {
-		
-		if(isspace(c))
-			continue;
-		
-		if(isalpha(c)) {
-			i = 0;
-			s = (char*) malloc((strlen(expr) + 2) * sizeof(char));
-			
-			do {
-				*(s + i++) = c;
-			} while(isalpha(c = tolower(*expr++)));
-			
-			*(s + i) = '\0';
-			
-			if(isFunction(s)) {
-				temp.type = FUNCTION;
-				temp.data.func = s;
-				temp.precedence = 3;
-				temp.leftAssociative = 0;
-			}
-			
-			else if(isSymbol(s)) {
-				temp.type = CONSTANT;
-				temp.data.d = getSymbol(s);
-			}
-			
-			else {
-				printf("Undefined function/symbol. %s", s);
-				return 0;
-			}
-			
-			--expr;
-		}
-		
-		else if(isdigit(c) || c == '.') {
-			errno = 0;
-			d = strtod(--expr, &s);
-			
-			if(expr == (char*) s) {
-				printf("Invalid constant.");
-				return 0;
-			}
-			
-			if(errno != 0) {
-				printf("Constant to large for double.");
-				return 0;
-			}
-			
-			temp.type = CONSTANT;
-			temp.data.d = d;
-			
-			expr = (char*) s;
-		}
-		
-		else if(c == '(' || c == ')') {
-			temp.type = PARENTHESIS;
-			temp.data.op = c;
-		}
-		
-		else if(c == ',') {
-			temp.type = SEPARATOR;
-			temp.data.op = c;
-		}
-		
-		else if(isOperator(c)) {
-			temp.type = OPERATOR;
-			temp.data.op = c;
-			temp.precedence = precedence(c);
-			temp.leftAssociative = isLeftAssociative(c);
-		}
-		
-		else {
-			printf("Invalid token. %c", c);
-			return 0;
-		}
-		
-		inQueue[inCount++] = temp;
-	}
-	
-	return 1;
 }
 
 int execute(struct token temp) {
@@ -267,7 +115,7 @@ int execute(struct token temp) {
 					result = factorial(d1);
 					break;
 				case '$':
-					if(floor(d1) != d1 || d1 < 0 || d1 > resultCount) {
+					if(floor(d1) != d1 || d1 <= 0 || d1 > resultCount) {
 						printf("Invalid result index.");
 						return 0;
 					}
@@ -376,82 +224,129 @@ int emptyOpStack() {
 	return 1;
 }
 
-void shuntYard() {
+void shuntYard(char* expr) {
 	
+	int i;
+	char c;
+	char* s;
+	double d;
 	int unary = 1;
 	struct token temp;
 	
-	for(int i = 0; i < inCount; i++) {
-		temp = inQueue[i];
+	while((c = tolower(*expr++)) != '\0') {
 		
-		if(temp.type == CONSTANT)
-			outStack[outCount++] = temp.data.d;
+		if(isspace(c))
+			continue;
 		
-		else if(temp.type == PARENTHESIS) {
-			if(temp.data.op == '(') {
+		if(isalpha(c)) {
+			i = 0;
+			s = (char*) malloc((strlen(expr) + 2) * sizeof(char));
+			
+			do {
+				*(s + i++) = c;
+			} while(isalpha(c = tolower(*expr++)));
+			
+			*(s + i) = '\0';
+			
+			if(isFunction(s)) {
+				temp.type = FUNCTION;
+				temp.data.func = s;
+				temp.precedence = 3;
+				temp.leftAssociative = 0;
+				
 				opStack[opCount++] = temp;
+				unary = 1;
 			}
 			
-			else if(temp.data.op == ')') {
-				
-				while(1) {
-					if(opCount == 0) {
-						printf("Mismatched ')'.");
-						return;
-					}
-					
-					temp = opStack[--opCount];
-					
-					if(temp.data.op == '(')
-						break;
-					
-					if(temp.type == CONSTANT)
-						outStack[outCount++] = temp.data.d;
-					else
-						if(!execute(temp))
-							return;
-				}
-				temp.data.op = ')';
-			}
-		}
-		
-		else if(temp.type == OPERATOR) {
-			if(unary == 1) {
-				if(temp.data.op == '-')
-					temp.data.op = '~';
-				
-				else if(temp.data.op == '+')
-					temp.data.op = '_';
-				
-				temp.precedence = precedence(temp.data.op);
-				temp.leftAssociative = isLeftAssociative(temp.data.op);
-			}
-			
-			if(temp.leftAssociative) {
-				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence <= opStack[opCount - 1].precedence)
-					if(!execute(opStack[--opCount]))
-						return;
+			else if(d = isSymbol(s)) {
+				outStack[outCount++] = d;
+				unary = 0;
 			}
 			
 			else {
-				while(opCount != 0 && (opStack[opCount - 1].type == OPERATOR || opStack[opCount - 1].type == FUNCTION) && temp.precedence < opStack[opCount - 1].precedence)
-					if(!execute(opStack[--opCount]))
-						return;
+				printf("Undefined function/symbol \"%s\".", s);
+				return;
 			}
 			
-			opStack[opCount++] = temp;
+			--expr;
 		}
 		
-		else if(temp.type == SEPARATOR) {
+		else if(isdigit(c) || c == '.') {
+			errno = 0;
+			d = strtod(--expr, &s);
+			
+			if(expr == (char*) s) {
+				printf("Invalid constant.");
+				return;
+			}
+			
+			if(errno != 0) {
+				printf("Constant to large for double.");
+				return;
+			}
+			
+			outStack[outCount++] = d;
+			unary = 0;
+			expr = (char*) s;
+		}
+		
+		else if(c == '(') {
+			temp.type = PARENTHESIS;
+			
+			opStack[opCount++] = temp;
+			unary = 1;
+		}
+		
+		else if(c == ')') {
+			while(1) {
+				if(opCount == 0) {
+					printf("Mismatched ')'.");
+					return;
+				}
+				
+				temp = opStack[--opCount];
+				
+				if(temp.type == PARENTHESIS)
+					break;
+				
+				if(!execute(temp))
+					return;
+			}
+			unary = 0;
+		}
+		
+		else if(c == ',') {
 			if(!emptyOpStack())
 				return;
+			unary = 1;
+		}
+		
+		else if(isOperator(c)) {
+			if(unary == 1) {
+				if(c == '-')
+					c = '~';
+				
+				else if(c == '+')
+					c = '_';
+			}
+			
+			temp.type = OPERATOR;
+			temp.data.op = c;
+			temp.precedence = precedence(c);
+			temp.leftAssociative = isLeftAssociative(c);
+			
+			while(opCount != 0 && opStack[opCount - 1].type != PARENTHESIS && temp.precedence < (opStack[opCount - 1].precedence + temp.leftAssociative))
+				if(!execute(opStack[--opCount]))
+					return;
+			
+			unary = 1;
+			opStack[opCount++] = temp;
 		}
 		
 		else {
-			opStack[opCount++] = temp;
+			printf("Invalid token. %c", c);
+			return;
 		}
-		
-		unary = !(temp.type == CONSTANT || (temp.type == PARENTHESIS && temp.data.op == ')'));
 	}
 	
 	if(!emptyOpStack())
@@ -463,9 +358,6 @@ void shuntYard() {
 
 void evaluate(char* expr, int addEndChar) {
 	
-	inCount = 0;
-	inQueue = (struct token*) malloc(strlen(expr) * sizeof(struct token));
-	
 	opCount = 0;
 	opStack = (struct token*) malloc(strlen(expr) * sizeof(struct token));
 	
@@ -475,12 +367,10 @@ void evaluate(char* expr, int addEndChar) {
 	resultCount = 0;
 	results = (double*) malloc(strlen(expr) * sizeof(double));
 	
-	if(tokenize(expr))
-		shuntYard();
+	shuntYard(expr);
 	
 	printf("%s", addEndChar ? (USE_NEWLINE ? "\n" : " ") : "");
 	
-	free(inQueue);
 	free(opStack);
 	free(outStack);
 	free(results);

@@ -7,12 +7,7 @@
 #define E 2.7182818284590452354
 #define PI 3.14159265358979323846
 
-int isSymbol(char* s) {
-	
-	return (strcmp(s, "e") == 0 || strcmp(s, "pi") == 0 || strcmp(s, "inf") == 0 || strcmp(s, "rand") == 0 || strcmp(s, "g") == 0);
-}
-
-double getSymbol(char* s) {
+double isSymbol(char* s) {
 	
 	if(strcmp(s, "e") == 0)
 		return E;
@@ -31,6 +26,8 @@ double getSymbol(char* s) {
 	
 	if(strcmp(s, "g") == 0)
 		return G;
+	
+	return 0.0;
 }
 
 double factorial(double d) {

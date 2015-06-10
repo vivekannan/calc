@@ -1,8 +1,7 @@
 #ifndef HELPERS_H
 #define HELPERS_H 1
 
-int isSymbol(char*);
-double getSymbol(char*);
+double isSymbol(char*);
 double factorial(double);
 double toRadians(double);
 double toDegrees(double);
