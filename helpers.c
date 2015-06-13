@@ -2,27 +2,29 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#include <stdio.h>
 
 #define G 1.6180339887498948482
 #define E 2.7182818284590452354
 #define PI 3.14159265358979323846
+
+#define OP_COUNT 10
+#define FUNC_COUNT 21
 
 char* operators = "+-*/%^$~_!";
 char* functions[] = { "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "exp", "floor", "ceil", "round", "log", "ln", "sqrt", "abs", "sgn" };
 
 int isFunction(char* s) {
 	
-	for(int i = 0; i < 21; i++)
-		if(strcmp(functions[i], s) == 0)
-			return i;
+	int i = FUNC_COUNT - 1;
 	
-	return -1;
+	for(; i >= 0 && strcmp(functions[i], s) != 0; i--);
+	
+	return i;
 }
 
 int isOperator(char c) {
 	
-	int i = 9;
+	int i = OP_COUNT - 1;
 	
 	for(; i >= 0 && *(operators + i) != c; i--);
 	
