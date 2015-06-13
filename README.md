@@ -31,12 +31,12 @@
   
   For example, the output of the above is
   
-    3.4;-3.870474654
+    3.4;-3.870601766
   
   With -n flag,
   
     3.4
-    -3.870474654
+    -3.870601766
 
 ##Features
 
