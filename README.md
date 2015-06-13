@@ -19,7 +19,7 @@
   The following flags can be used,
 
   1. -d, consider all angles to be degrees. Results are also in degrees.
-  2. -n, print results of each epressions in a new line instead of separating them by space.
+  2. -n, print results of each epressions in a new line instead of separating them by ';'.
   3. -h (or) --help, print help and exit.
 
 ##Expressions
@@ -31,7 +31,7 @@
   
   For example, the output of the above is
   
-    3.4 -3.870474654
+    3.4;-3.870474654
   
   With -n flag,
   
@@ -81,7 +81,7 @@ The results of all three expressions is printed in comma separated format.
   
   Results in,
   
-    7.338823075E-05 -0.9999999973
+    7.338823075E-05;-0.9999999973
   
   The actual values being 0 and -1. pi here is a symbolic constant.
 
@@ -99,7 +99,7 @@ The results of all three expressions is printed in comma separated format.
   
     ./calc 'atan inf' 'rand, sin $1, cos($2 - $1)' '-+_+_++_--~---~+_rand'
     
-    1.570796327 0.4473471527,0.4325752577,0.9998908975 0.6601152609
+    1.570796327;0.4473471527,0.4325752577,0.9998908975;0.6601152609
 
 ##TODO
 

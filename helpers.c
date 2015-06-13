@@ -2,10 +2,32 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 
 #define G 1.6180339887498948482
 #define E 2.7182818284590452354
 #define PI 3.14159265358979323846
+
+char* operators = "+-*/%^$~_!";
+char* functions[] = { "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "exp", "floor", "ceil", "round", "log", "ln", "sqrt", "abs", "sgn" };
+
+int isFunction(char* s) {
+	
+	for(int i = 0; i < 21; i++)
+		if(strcmp(functions[i], s) == 0)
+			return i;
+	
+	return -1;
+}
+
+int isOperator(char c) {
+	
+	int i = 9;
+	
+	for(; i >= 0 && *(operators + i) != c; i--);
+	
+	return i;
+}
 
 double isSymbol(char* s) {
 	
@@ -48,73 +70,4 @@ double toRadians(double d) {
 double toDegrees(double d) {
 	
 	return d * (180.0 / PI);
-}
-
-int precedence(char c) {
-	
-	switch(c) {
-		case '+':
-		case '-':
-			return 0;
-		case '*':
-		case '/':
-		case '%':
-			return 1;
-		case '^':
-			return 2;
-		case '$':
-			return 3;
-		case '~':
-		case '_':
-			return 4;
-		case '!':
-			return 5;
-	}
-}
-
-int isLeftAssociative(char c) {
-	
-	switch(c) {
-		case '+':
-		case '-':
-		case '*':
-		case '/':
-		case '%':
-			return 1;
-		case '~':
-		case '_':
-		case '$':
-		case '!':
-		case '^':
-			return 0;
-	}
-}
-
-int isOperator(char c) {
-	
-	switch(c) {
-		case '+':
-		case '-':
-		case '*':
-		case '/':
-		case '%':
-		case '^':
-		case '!':
-		case '~':
-		case '_':
-		case '$':
-			return 1;
-		default:
-			return 0;
-	}
-}
-
-int isFunction(char* s) {
-	
-	return (strcmp(s, "sin") == 0 || strcmp(s, "cos") == 0 || strcmp(s, "tan") == 0 || strcmp(s, "asin") == 0 || strcmp(s, "acos") == 0 || strcmp(s, "atan") == 0 || strcmp(s, "sinh") == 0 || strcmp(s, "cosh") == 0 || strcmp(s, "tanh") == 0 || strcmp(s, "asinh") == 0 || strcmp(s, "acosh") == 0 || strcmp(s, "atanh") == 0 || strcmp(s, "exp") == 0 || strcmp(s, "floor") == 0 || strcmp(s, "ceil") == 0 || strcmp(s, "round") == 0 || strcmp(s, "log") == 0 || strcmp(s, "ln") == 0 || strcmp(s, "sqrt") == 0 || strcmp(s, "abs") == 0 || strcmp(s, "sgn") == 0);
-}
-
-int isBinary(char c) {
-	
-	return (c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '^');
 }

@@ -5,17 +5,12 @@
 #define FUNCTION 1
 #define PARENTHESIS 2
 
-union t {
-	
-	char op;
-	char* func;
-};
-
 struct token {
 	
 	int type;
-	union t data;
+	int subType;
 	
+	int isBinary;
 	int precedence;
 	int leftAssociative;
 };
