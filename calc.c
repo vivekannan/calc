@@ -57,7 +57,7 @@ int parseOptions(int argc, char* argv[]) {
 			return i;
 	}
 	
-	fprintf(stderr, "calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.");
+	fprintf(stderr, "calc: Expression missing.\nUsage: calc [OPTIONS] EXPRESSIONS.\nTry 'calc --help' for more information.\n");
 	exit(-1);
 }
 
