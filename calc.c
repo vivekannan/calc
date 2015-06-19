@@ -394,6 +394,8 @@ void evaluate(char* expr, int addEndChar) {
 
 int main(int argc, char* argv[]) {
 	
+	setbuf(stdout, NULL);
+	
 	int i = parseOptions(argc, argv);
 	
 	for(; i < argc; i++)
