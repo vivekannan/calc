@@ -27,7 +27,7 @@
   
     ./calc '3.4' 'atan(1/0) - 3.14159265358979323846 * sqrt 3'
   
-  The result of each expression is printed either in the same line separated by space or in separate lines if the -n flag is used.
+  The result of each expression is printed either in the same line separated by semi-colons or in separate lines if the -n flag is used.
   
   For example, the output of the above is
   
