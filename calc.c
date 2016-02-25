@@ -249,6 +249,11 @@ int shuntYard(char* expr) {
 			i = 0;
 			s = (char*) malloc((strlen(expr) + 2) * sizeof(char));
 			
+			if(!s) {
+				fprintf(stderr, "Cannot allocate memory.");
+				exit(-2);
+			}
+			
 			do {
 				*(s + i++) = c;
 			} while(isalpha(c = tolower(*expr++)));
@@ -276,6 +281,7 @@ int shuntYard(char* expr) {
 			}
 			
 			--expr;
+			free(s);
 		}
 		
 		else if(isdigit(c) || c == '.') {
@@ -380,6 +386,11 @@ void evaluate(char* expr, int addEndChar) {
 	
 	resultCount = 0;
 	results = (double*) malloc(strlen(expr) * sizeof(double));
+	
+	if(!opStack || !outStack || !results) {
+		fprintf(stderr, "Cannot allocate memory.");
+		exit(-2);
+	}
 	
 	if(shuntYard(expr))
 		printf("%s", addEndChar ? (USE_NEWLINE ? "\n" : ";") : "");
