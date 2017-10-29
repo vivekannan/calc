@@ -139,6 +139,7 @@ int execute(struct token temp) {
 		}
 		
 		d1 = outStack[--outCount];
+                result = d1;
 		
 		if(temp.subType == SIN)
 			result = USE_DEGREE ? sin(toRadians(d1)) : sin(d1);
