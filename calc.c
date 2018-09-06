@@ -15,7 +15,7 @@ Options\n\
   The following flags can be used,\n\
 \n\
   1. -d, consider all angles to be degrees. Results are also in degrees.\n\
-  2. -n, print results of each epressions in a new line instead of separating them by space.\n\
+  2. -n, print results of each expressions in a new line instead of separating them by space.\n\
   3. -h (or) --help, print help and exit.\n\
 \n\
 Visit https://github.com/vivekannan/calc/ for more info.\n\
