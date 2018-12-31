@@ -91,7 +91,7 @@ int execute(struct token temp) {
 				case '%':
 					result = fmod(d1, d2);
 					break;
-				case '^':
+				case '#':
 					result = pow(d1, d2);
 					break;
 			}
