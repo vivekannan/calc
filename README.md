@@ -61,15 +61,6 @@ and is the icon being used for his apps:
 
 ![icon](resources/icon.ico)
 
-### Dist Folder
-There is the `dist_beta_ver` folder. This folder contains
-the executable files `calc.exe` and `calcGUI.exe` for
-Windows.
-
-`calc.exe` is the original console program
-while `calcGUI.exe` is the attempt
-to provide GUI for CalC program.
-
 ## Options
 The following flags can be used:
 
